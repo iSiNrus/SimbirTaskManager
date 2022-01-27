@@ -1,28 +1,30 @@
 package ru.barsik.simbirtaskmanager
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.widget.CalendarView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import ru.barsik.simbirtaskmanager.databinding.ActivityMainBinding
+import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.ArrayList
 
 class MainActivity : AppCompatActivity() {
 
     private val TAG = "MainActivity"
-    private val binder by lazy { ActivityMainBinding.inflate(layoutInflater) }
+    private lateinit var binder: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binder = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binder.root)
 
         binder.recyclerview.layoutManager = LinearLayoutManager(this)
 
-
-        binder.calendarView.setOnDateChangeListener { calendarView: CalendarView, i: Int, i2: Int, i3: Int ->
-            var date = Date(calendarView.date)
-            Log.d(TAG, "onCreate: $date")
+        binder.calendarView.setOnDayClickListener {
+            val sdf = SimpleDateFormat("dd MMMM yyyy", Locale("ru"))
+            val date: String = sdf.format(it.calendar.time)
+            binder.tvChoosenDate.text = date
         }
     }
 }

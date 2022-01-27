@@ -27,12 +27,14 @@
             app:expandedTitleMarginEnd="64dp"
             >
 
-            <CalendarView
+            <com.applandeo.materialcalendarview.CalendarView
                 android:id="@+id/calendar_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_marginTop="?attr/actionBarSize"
                 android:fitsSystemWindows="true"
+                app:type="one_day_picker"
+                app:selectionColor="@android:color/holo_red_dark"
                 app:layout_collapseMode="pin" />
 
             <androidx.appcompat.widget.Toolbar
