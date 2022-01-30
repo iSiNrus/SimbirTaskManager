@@ -3,6 +3,7 @@ package ru.barsik.simbirtaskmanager
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -23,16 +24,24 @@ class MainActivity : AppCompatActivity() {
         binder = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binder.root)
 
+        var nodes = ArrayList<TableNode>()
+        for(i in 0..23) nodes.add(TableNode(i))
         binder.recyclerview.layoutManager = LinearLayoutManager(this)
+        binder.recyclerview.adapter = TaskAdapter(nodes)
+        binder.recyclerview.addItemDecoration(DividerItemDecoration(this, DividerItemDecoration.VERTICAL))
+
+        val tasks = getTasks()
+        for(t in tasks)
+            Log.d(TAG, t.name)
 
         binder.calendarView.setOnDayClickListener {
             val sdf = SimpleDateFormat("dd MMMM yyyy", Locale("ru"))
             val date: String = sdf.format(it.calendar.time)
             binder.tvChoosenDate.text = date
         }
-        val tasks = getTasks()
-        for(t in tasks)
-            Log.d(TAG, t.name)
+
+
+
     }
 
 
