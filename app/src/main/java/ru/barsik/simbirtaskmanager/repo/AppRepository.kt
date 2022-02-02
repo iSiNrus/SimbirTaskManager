@@ -8,7 +8,11 @@ import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.schedulers.Schedulers
 import io.realm.Realm
 import io.realm.RealmConfiguration
+import io.realm.kotlin.createObject
+import io.realm.kotlin.executeTransactionAwait
+import kotlinx.coroutines.Dispatchers
 import ru.barsik.simbirtaskmanager.model.Task
+import ru.barsik.simbirtaskmanager.model.TaskRealm
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.*
@@ -20,7 +24,7 @@ class AppRepository(private val ctx: Context) {
     private var config: RealmConfiguration? = null
 
     private fun getConfig(): RealmConfiguration {
-        if(config == null) {
+        if (config == null) {
             config = RealmConfiguration.Builder()
                 .schemaVersion(realmVersion)
                 .build()
@@ -46,20 +50,55 @@ class AppRepository(private val ctx: Context) {
 
         tasks.removeIf {
             !(it.getCalendarStart().get(Calendar.YEAR) == date.get(Calendar.YEAR) &&
-                    it.getCalendarStart().get(Calendar.DAY_OF_YEAR) == date.get(Calendar.DAY_OF_YEAR))
+                    it.getCalendarStart()
+                        .get(Calendar.DAY_OF_YEAR) == date.get(Calendar.DAY_OF_YEAR))
         }
 
         return tasks
     }
 
     fun getTasksFromRealm() : Single<List<Task>> {
-        val realm = Realm.getInstance(getConfig())
-        val single : Single<List<Task>> = Single.create{ emitter ->
-            val results = realm.where(Task::class.java).findAll()
-            emitter.onSuccess(realm.copyFromRealm(results))
+        val single = Single.create<List<Task>> { emitter ->
+            val realm = Realm.getInstance(getConfig())
+            val list = mutableListOf<Task>()
+            realm.executeTransactionAsync { realmTrans ->
+                list.addAll(
+                    realmTrans
+                        .where(TaskRealm::class.java)
+                        .findAll()
+                        .map { mapTask(it) }
+                )
+                emitter.onSuccess(list)
+            }
         }
-        single.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
         return single
+    }
+
+    fun saveTask(task: Task): Single<Int> {
+
+        return Single.create<Int> { emitter->
+            val realm = Realm.getInstance(getConfig())
+            val taskR = TaskRealm(
+                id = task.id,
+                name = task.name,
+                date_start = task.date_start,
+                date_finish = task.date_finish,
+                description = task.description
+            )
+            realm.executeTransactionAsync({ realmTransaction ->
+                realmTransaction.insertOrUpdate(taskR)
+            },{ emitter.onSuccess(1) },{emitter.onError(it)})
+        }.observeOn(Schedulers.io()).subscribeOn(AndroidSchedulers.mainThread())
+
+    }
+
+    private fun mapTask(taskR: TaskRealm): Task {
+        return Task(
+            name = taskR.name,
+            date_start = taskR.date_start,
+            date_finish = taskR.date_finish,
+            description = taskR.description
+        )
     }
 
 }
