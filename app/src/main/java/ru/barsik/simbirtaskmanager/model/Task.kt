@@ -1,14 +1,20 @@
 package ru.barsik.simbirtaskmanager.model
 
+import io.realm.RealmObject
+import io.realm.annotations.PrimaryKey
 import java.util.*
 
-data class Task(
-    val date_finish: String,
-    val date_start: String,
-    val description: String,
-    val id: Int,
-    val name: String
-){
+open class Task(
+
+    @PrimaryKey
+    var id: Int = 0,
+
+    var date_finish: String = "Unknown",
+    var date_start: String = "Unknown",
+    var description: String = "Unknown",
+    var name: String = "Unknown"
+
+) : RealmObject() {
 
     fun getCalendarStart(): Calendar {
         val cal = Calendar.getInstance()

@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import ru.barsik.simbirtaskmanager.model.TableNode
 import ru.barsik.simbirtaskmanager.databinding.ActivityMainBinding
 import ru.barsik.simbirtaskmanager.domain.MainViewModel
+import ru.barsik.simbirtaskmanager.repo.AppRepository
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
@@ -43,6 +44,14 @@ class MainActivity : AppCompatActivity() {
         viewModel.getNodesListLiveData().observe(this, androidx.lifecycle.Observer {
             Log.d(TAG, "onCreate: Наблюдаю изменения...")
             (binder.recyclerview.adapter as TaskAdapter).updateNodes(nodes.value!!)
+        })
+
+        val repo = AppRepository(applicationContext)
+        repo.getTasksFromRealm().subscribe({
+            Log.d(TAG, "subscribe: получил данные")
+                                           for(t in it) Log.d(TAG, "subscribe: ${t.name} ")
+        },{
+            Log.d(TAG, "subscribe ${it.message}")
         })
 
     }
