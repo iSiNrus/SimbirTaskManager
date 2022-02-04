@@ -4,8 +4,11 @@ import android.app.DatePickerDialog
 import android.app.DatePickerDialog.OnDateSetListener
 import android.app.TimePickerDialog
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import ru.barsik.simbirtaskmanager.databinding.ActivityAddBinding
+import ru.barsik.simbirtaskmanager.model.Task
+import ru.barsik.simbirtaskmanager.repo.AppRepository
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -59,6 +62,35 @@ class AddActivity : AppCompatActivity() {
                 true
             ).show()
         }
+
+        binder.btnSave.setOnClickListener {
+            val repo = AppRepository(this)
+            val dateFinish = dateTimeFinish.timeInMillis.toString()
+            val dateStart = dateTimeStart.timeInMillis.toString()
+            val name = binder.tfName.editText?.text.toString().trim()
+            val descr = binder.tfDescript.editText?.text.toString().trim()
+
+            if(name == "" || descr == "" || (dateFinish.toLong() - dateStart.toLong()) < 0){
+                Toast.makeText(this, "Неверные данные", Toast.LENGTH_SHORT).show()
+            } else {
+                repo.saveTask(
+                    Task(
+                        name = name,
+                        date_start = dateStart,
+                        date_finish = dateFinish,
+                        description = descr
+                    )
+                ).subscribe({
+                    this.runOnUiThread {
+                        Toast.makeText(this, "Успешно сохранено", Toast.LENGTH_SHORT).show()
+                    }
+                }, {
+                    this.runOnUiThread {
+                        Toast.makeText(this, "Ошибка сохранения", Toast.LENGTH_SHORT).show()
+                    }
+                })
+            }
+        }
     }
 
     private var ds = OnDateSetListener { view, year, monthOfYear, dayOfMonth ->
@@ -67,13 +99,11 @@ class AddActivity : AppCompatActivity() {
             dateTimeStart.set(Calendar.DAY_OF_MONTH, dayOfMonth)
             setInitialDateTime()
         }
-
     private var ts = TimePickerDialog.OnTimeSetListener { view, hourOfDay, minute ->
         dateTimeStart.set(Calendar.HOUR_OF_DAY, hourOfDay)
         dateTimeStart.set(Calendar.MINUTE, minute)
         setInitialDateTime()
     }
-
     private var df = OnDateSetListener { datePicker, year, monthOfYear, dayOfMonth ->
         dateTimeFinish.set(Calendar.YEAR, year)
         dateTimeFinish.set(Calendar.MONTH, monthOfYear)

@@ -54,13 +54,6 @@ class MainActivity : AppCompatActivity() {
         logTasksFromDB()
         binder.fab.setOnClickListener {
             startActivity(Intent(this, AddActivity::class.java))
-//            var task = Task(date_finish = "123", date_start = "123", description = "Descr1", name = "TaskTest${(Math.random()*100).toInt()}")
-//            repo!!.saveTask(task).subscribe({
-//                Log.d(TAG, "add: успешно добавлено")
-//                logTasksFromDB()
-//            },{
-//                throw it
-//            })
         }
 
     }

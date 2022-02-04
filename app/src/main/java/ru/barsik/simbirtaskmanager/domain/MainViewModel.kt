@@ -17,16 +17,20 @@ class MainViewModel(ctx: Context) : ViewModel() {
     fun getNodesListLiveData() = nodesListLiveData
 
     fun getNodesList(date: Calendar){
-        val tasks = repo.getTasks(date)
-        nodesListLiveData.value = ArrayList()
-        (0..23).forEach {
-            nodesListLiveData.value?.add(TableNode(it))
-        }
-        for(t in tasks)
-            (nodesListLiveData.value?.get(t.getCalendarStart().get(Calendar.HOUR_OF_DAY)) as TableNode)
-                .also {
-                it.isBusy = true
-                it.task = t
+        repo.getTasksFromRealm(date).subscribe({ tasks ->
+            val nodesList = ArrayList<TableNode>()
+            (0..23).forEach {
+                nodesList.add(TableNode(it))
             }
+            nodesListLiveData.postValue(ArrayList())
+            for(t in tasks)
+                nodesList[t.getCalendarStart().get(Calendar.HOUR_OF_DAY)]
+                    .also {
+                        it.isBusy = true
+                        it.task = t
+                    }
+            nodesListLiveData.postValue(nodesList)
+        }, {})
+
     }
 }

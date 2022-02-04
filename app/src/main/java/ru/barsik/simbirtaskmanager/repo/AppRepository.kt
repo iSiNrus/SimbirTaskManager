@@ -74,6 +74,28 @@ class AppRepository(private val ctx: Context) {
         return single
     }
 
+    fun getTasksFromRealm(date: Calendar) : Single<List<Task>> {
+        val single = Single.create<List<Task>> { emitter ->
+            val realm = Realm.getInstance(getConfig())
+            val list = mutableListOf<Task>()
+            realm.executeTransactionAsync { realmTrans ->
+                list.addAll(
+                    realmTrans
+                        .where(TaskRealm::class.java)
+                        .findAll()
+                        .map { mapTask(it) }
+                )
+                list.removeIf {
+                    !(it.getCalendarStart().get(Calendar.YEAR) == date.get(Calendar.YEAR) &&
+                            it.getCalendarStart()
+                                .get(Calendar.DAY_OF_YEAR) == date.get(Calendar.DAY_OF_YEAR))
+                }
+                emitter.onSuccess(list)
+            }
+        }
+        return single
+    }
+
     fun saveTask(task: Task): Single<Int> {
 
         return Single.create<Int> { emitter->
