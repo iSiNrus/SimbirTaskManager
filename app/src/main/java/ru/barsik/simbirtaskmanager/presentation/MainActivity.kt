@@ -1,5 +1,6 @@
 package ru.barsik.simbirtaskmanager.presentation
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
@@ -51,16 +52,15 @@ class MainActivity : AppCompatActivity() {
 
         repo = AppRepository(applicationContext)
         logTasksFromDB()
-        Log.d(TAG, "TIME ${System.nanoTime()}")
         binder.fab.setOnClickListener {
-            var task = Task(date_finish = "123", date_start = "123", description = "Descr1", name = "TaskTest${(Math.random()*100).toInt()}")
-            repo!!.saveTask(task).subscribe({
-                Log.d(TAG, "add: успешно добавлено")
-                logTasksFromDB()
-            },{
-                throw it
-            })
-
+            startActivity(Intent(this, AddActivity::class.java))
+//            var task = Task(date_finish = "123", date_start = "123", description = "Descr1", name = "TaskTest${(Math.random()*100).toInt()}")
+//            repo!!.saveTask(task).subscribe({
+//                Log.d(TAG, "add: успешно добавлено")
+//                logTasksFromDB()
+//            },{
+//                throw it
+//            })
         }
 
     }
