@@ -130,7 +130,8 @@
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/tf_descript"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:hint="Описание"
 
         android:layout_marginVertical="8dp"
@@ -138,8 +139,19 @@
         >
         <com.google.android.material.textfield.TextInputEditText
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:inputType="textMultiLine"
+            android:gravity="start"
             />
     </com.google.android.material.textfield.TextInputLayout>
+
+    <Button
+        android:id="@+id/btn_save"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Сохранить"
+
+        android:layout_marginHorizontal="8dp"
+        android:paddingVertical="16dp"
+        />
 </LinearLayout>
