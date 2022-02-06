@@ -1,6 +1,7 @@
 package ru.barsik.simbirtaskmanager.presentation
 
 import android.content.Context
+import android.content.Intent
 import android.content.res.Resources
 import android.util.Log
 import android.view.LayoutInflater
@@ -29,6 +30,14 @@ class TaskAdapter(private var nodes: ArrayList<TableNode>, private var ctx: Cont
     override fun onBindViewHolder(holder: TaskViewHolder, position: Int) {
         holder.time.text = String.format("%02d:00\n-\n%02d:00", nodes[position].time, nodes[position].time+1 )
         holder.taskName.text = nodes[position].task?.name?:"Записей нет"
+        holder.taskName.setOnClickListener {
+            if(nodes[position].isBusy){
+                ctx.startActivity(Intent(ctx, AddActivity::class.java).also {
+                    it.putExtra(MainActivity.EXTRA_TASK, nodes[position].task)
+                    it.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                })
+            }
+        }
         if(nodes[position].isBusy) holder.taskName.setBackgroundColor(ctx.getColor(R.color.item_color))
     }
 

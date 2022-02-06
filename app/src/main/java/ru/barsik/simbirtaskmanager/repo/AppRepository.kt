@@ -100,15 +100,24 @@ class AppRepository(private val ctx: Context) {
 
         return Single.create<Int> { emitter->
             val realm = Realm.getInstance(getConfig())
-            val taskR = TaskRealm(
-                id = task.id,
-                name = task.name,
-                date_start = task.date_start,
-                date_finish = task.date_finish,
-                description = task.description
-            )
             realm.executeTransactionAsync({ realmTransaction ->
-                realmTransaction.insertOrUpdate(taskR)
+                var taskRealm = realmTransaction.where(TaskRealm::class.java).equalTo("id", task.id).findFirst()
+                if(taskRealm!=null) {
+                    taskRealm.name = task.name
+                    taskRealm.description = task.description
+                    taskRealm.date_finish = task.date_finish
+                    taskRealm.date_start = task.date_start
+                    realmTransaction.insertOrUpdate(taskRealm)
+                } else {
+                    val taskR = TaskRealm(
+                        id = task.id,
+                        name = task.name,
+                        date_start = task.date_start,
+                        date_finish = task.date_finish,
+                        description = task.description
+                    )
+                    realmTransaction.insert(taskR)
+                }
             },{ emitter.onSuccess(1) },{emitter.onError(it)})
         }.observeOn(Schedulers.io()).subscribeOn(AndroidSchedulers.mainThread())
 
@@ -116,11 +125,23 @@ class AppRepository(private val ctx: Context) {
 
     private fun mapTask(taskR: TaskRealm): Task {
         return Task(
+            id = taskR.id,
             name = taskR.name,
             date_start = taskR.date_start,
             date_finish = taskR.date_finish,
             description = taskR.description
         )
+    }
+
+    fun deleteTask(task: Task) {
+        val realm = Realm.getInstance(getConfig())
+        realm.executeTransactionAsync { realmTransaction ->
+            realmTransaction
+                .where(TaskRealm::class.java)
+                .equalTo("id", task.id)
+                .findFirst()
+                ?.deleteFromRealm()
+        }
     }
 
 }

@@ -4,6 +4,9 @@ import android.app.DatePickerDialog
 import android.app.DatePickerDialog.OnDateSetListener
 import android.app.TimePickerDialog
 import android.os.Bundle
+import android.text.Editable
+import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import ru.barsik.simbirtaskmanager.databinding.ActivityAddBinding
@@ -14,16 +17,41 @@ import java.util.*
 
 class AddActivity : AppCompatActivity() {
 
+    private val TAG = "AddActivity"
     private lateinit var binder: ActivityAddBinding
-    private val dateTimeStart = Calendar.getInstance()
-    private val dateTimeFinish = Calendar.getInstance()
+    private var dateTimeStart = Calendar.getInstance()
+    private var dateTimeFinish = Calendar.getInstance()
+    private var isEdit = false
+    private var mTask: Task? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binder = ActivityAddBinding.inflate(layoutInflater)
         setContentView(binder.root)
 
+        if(intent.getSerializableExtra(MainActivity.EXTRA_TASK) != null) {
+            isEdit = true
+            mTask = intent.getSerializableExtra(MainActivity.EXTRA_TASK) as Task
+            Log.d(TAG, "onCreate: ${mTask?.toString()}")
+            dateTimeStart = mTask?.getCalendarStart()
+            dateTimeFinish = mTask?.getCalendarFinish()
+
+            binder.tfName.editText?.setText(mTask?.name)
+            binder.tfDescript.editText?.setText(mTask?.description)
+
+            binder.toolbarTitle.title = "Редактирование"
+            binder.ivDelete.visibility = View.VISIBLE
+        }
+
+        setInitialDateTime()
+
         binder.ivBack.setOnClickListener{
+            onBackPressed()
+        }
+
+        binder.ivDelete.setOnClickListener {
+            val repo = AppRepository(this)
+            repo.deleteTask(mTask!!)
             onBackPressed()
         }
 
@@ -73,22 +101,41 @@ class AddActivity : AppCompatActivity() {
             if(name == "" || descr == "" || (dateFinish.toLong() - dateStart.toLong()) < 0){
                 Toast.makeText(this, "Неверные данные", Toast.LENGTH_SHORT).show()
             } else {
-                repo.saveTask(
-                    Task(
-                        name = name,
-                        date_start = dateStart,
-                        date_finish = dateFinish,
-                        description = descr
-                    )
-                ).subscribe({
-                    this.runOnUiThread {
-                        Toast.makeText(this, "Успешно сохранено", Toast.LENGTH_SHORT).show()
-                    }
-                }, {
-                    this.runOnUiThread {
-                        Toast.makeText(this, "Ошибка сохранения", Toast.LENGTH_SHORT).show()
-                    }
-                })
+                if(isEdit)
+                {
+                    mTask?.name = name
+                    mTask?.description = descr
+                    mTask?.date_start = dateStart
+                    mTask?.date_finish = dateFinish
+                    Log.d(TAG, "onCreate: ${mTask.toString()}")
+                    repo.saveTask(mTask!!).subscribe({
+                        this.runOnUiThread {
+                            Toast.makeText(this, "Успешно сохранено", Toast.LENGTH_SHORT).show()
+                        }
+                    }, {
+                        this.runOnUiThread {
+                            Toast.makeText(this, "Ошибка сохранения", Toast.LENGTH_SHORT).show()
+                        }
+                    })
+                }
+                else{
+                    repo.saveTask(
+                        Task(
+                            name = name,
+                            date_start = dateStart,
+                            date_finish = dateFinish,
+                            description = descr
+                        )
+                    ).subscribe({
+                        this.runOnUiThread {
+                            Toast.makeText(this, "Успешно сохранено", Toast.LENGTH_SHORT).show()
+                        }
+                    }, {
+                        this.runOnUiThread {
+                            Toast.makeText(this, "Ошибка сохранения", Toast.LENGTH_SHORT).show()
+                        }
+                    })
+                }
             }
         }
     }

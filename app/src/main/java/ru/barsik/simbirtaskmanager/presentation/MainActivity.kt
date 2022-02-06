@@ -18,6 +18,10 @@ import kotlin.collections.ArrayList
 
 class MainActivity : AppCompatActivity() {
 
+    companion object {
+        public const val EXTRA_TASK = "EXTRA_TASK"
+    }
+
     private val TAG = "MainActivity"
     private lateinit var binder: ActivityMainBinding
     private lateinit var viewModel: MainViewModel
@@ -58,6 +62,10 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    override fun onResume() {
+        super.onResume()
+        viewModel.getNodesList(Calendar.getInstance())
+    }
     private fun logTasksFromDB(){
         repo!!.getTasksFromRealm().subscribe({
             Log.d(TAG, "subscribe: получил данные")
